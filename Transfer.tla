@@ -2,38 +2,52 @@
 EXTENDS Naturals, TLC
 
 (* --algorithm transfer
-variables alice_account = 10, bob_account = 10, money = 5;
+variables alice_account = 10, bob_account = 10, money \in 1..20,
+          account_total = alice_account + bob_account;
 
 begin
-A: alice_account := alice_account - money;
-B: bob_account := bob_account + money;
+Transfer:
+    if alice_account >= money then
+        A: alice_account := alice_account - money;
+           bob_account := bob_account + money;
+    end if;
+C: assert alice_account >= 0;
 
 end algorithm *)
-\* BEGIN TRANSLATION (chksum(pcal) = "257ee7f8" /\ chksum(tla) = "39fadbe7")
-VARIABLES alice_account, bob_account, money, pc
+\* BEGIN TRANSLATION (chksum(pcal) = "d5ab2bf6" /\ chksum(tla) = "45f38ae")
+VARIABLES alice_account, bob_account, money, account_total, pc
 
-vars == << alice_account, bob_account, money, pc >>
+vars == << alice_account, bob_account, money, account_total, pc >>
 
 Init == (* Global variables *)
         /\ alice_account = 10
         /\ bob_account = 10
-        /\ money = 5
-        /\ pc = "A"
+        /\ money \in 1..20
+        /\ account_total = alice_account + bob_account
+        /\ pc = "Transfer"
+
+Transfer == /\ pc = "Transfer"
+            /\ IF alice_account >= money
+                  THEN /\ pc' = "A"
+                  ELSE /\ pc' = "C"
+            /\ UNCHANGED << alice_account, bob_account, money, account_total >>
 
 A == /\ pc = "A"
      /\ alice_account' = alice_account - money
-     /\ pc' = "B"
-     /\ UNCHANGED << bob_account, money >>
-
-B == /\ pc = "B"
      /\ bob_account' = bob_account + money
+     /\ pc' = "C"
+     /\ UNCHANGED << money, account_total >>
+
+C == /\ pc = "C"
+     /\ Assert(alice_account >= 0, 
+               "Failure of assertion at line 14, column 4.")
      /\ pc' = "Done"
-     /\ UNCHANGED << alice_account, money >>
+     /\ UNCHANGED << alice_account, bob_account, money, account_total >>
 
 (* Allow infinite stuttering to prevent deadlock on termination. *)
 Terminating == pc = "Done" /\ UNCHANGED vars
 
-Next == A \/ B
+Next == Transfer \/ A \/ C
            \/ Terminating
 
 Spec == Init /\ [][Next]_vars
@@ -41,7 +55,11 @@ Spec == Init /\ [][Next]_vars
 Termination == <>(pc = "Done")
 
 \* END TRANSLATION 
+
+MoneyNotNegative == money >= 0
+MoneyInvariant == alice_account + bob_account = account_total
+
 =============================================================================
 \* Modification History
-\* Last modified Fri Mar 19 07:18:49 PDT 2021 by jerem
+\* Last modified Fri Mar 19 15:59:37 PDT 2021 by jerem
 \* Created Thu Mar 18 16:40:13 PDT 2021 by jerem
