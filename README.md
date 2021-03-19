@@ -1,4 +1,4 @@
-# PlusCal Tutorial
+# TLA+ / PlusCal Tutorial
 This repository contains code from [this](https://www.learntla.com/introduction/)
 [TLA+](http://lamport.azurewebsites.net/tla/tla.html) and [PlusCal](https://www.learntla.com/pluscal/) tutorial.
 
